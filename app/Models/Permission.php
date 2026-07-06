@@ -65,6 +65,10 @@ class Permission extends Model
 
     public const ACTION_ACTIVITY_READ = 'activity.read';
 
+    public const ACTION_IMPORT_READ = 'import.read';
+    public const ACTION_IMPORT_CREATE = 'import.create';
+    public const ACTION_IMPORT_DELETE = 'import.delete';
+
     /**
      * Should timestamps be used on this model.
      */
@@ -204,6 +208,15 @@ class Permission extends Model
             'description' => 'Permissions that control a user\'s access to the server activity logs.',
             'keys' => [
                 'read' => 'Allows a user to view the activity logs for the server.',
+            ],
+        ],
+
+        'import' => [
+            'description' => 'Permissions that control a user\'s access to the server importer.',
+            'keys' => [
+                'read' => 'Allows a user to view importer profiles and transfers.',
+                'create' => 'Allows a user to create importer profiles and start transfers.',
+                'delete' => 'Allows a user to delete importer profiles.',
             ],
         ],
     ];

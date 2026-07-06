@@ -21,6 +21,7 @@ import ServerActivityLogContainer from '@/components/server/ServerActivityLogCon
 // for the server dashboard when they're only needed for specific instances.
 const FileEditContainer = lazy(() => import('@/components/server/files/FileEditContainer'));
 const ScheduleEditContainer = lazy(() => import('@/components/server/schedules/ScheduleEditContainer'));
+const ImporterContainer = lazy(() => import('@/components/server/importer/ImporterContainer'));
 
 interface RouteDefinition {
     path: string;
@@ -140,5 +141,12 @@ export default {
             name: 'Activity',
             component: ServerActivityLogContainer,
         },
+        {
+            path: '/importer',
+            permission: 'import.files',
+            name: 'Importer',
+            component: ImporterContainer,
+        },
     ],
 } as Routes;
+

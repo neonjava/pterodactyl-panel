@@ -150,4 +150,18 @@ Route::group([
         Route::post('/reinstall', [Client\Servers\SettingsController::class, 'reinstall']);
         Route::put('/docker-image', [Client\Servers\SettingsController::class, 'dockerImage']);
     });
+
+    Route::group(['prefix' => '/importer'], function () {
+        Route::get('/profiles', [Client\Servers\ImporterController::class, 'indexProfiles']);
+        Route::post('/profiles', [Client\Servers\ImporterController::class, 'storeProfile']);
+        Route::put('/profiles/{profile}', [Client\Servers\ImporterController::class, 'updateProfile']);
+        Route::delete('/profiles/{profile}', [Client\Servers\ImporterController::class, 'deleteProfile']);
+
+        Route::post('/test', [Client\Servers\ImporterController::class, 'testConnection']);
+        Route::post('/browse', [Client\Servers\ImporterController::class, 'browseRemote']);
+
+        Route::post('/transfers', [Client\Servers\ImporterController::class, 'startTransfer']);
+        Route::get('/transfers', [Client\Servers\ImporterController::class, 'indexTransfers']);
+        Route::get('/transfers/{transfer}/logs', [Client\Servers\ImporterController::class, 'getTransferLogs']);
+    });
 });
