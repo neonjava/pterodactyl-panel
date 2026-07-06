@@ -542,32 +542,46 @@ export default () => {
     };
 
     // Trigger Import
-    const triggerImport = (values: FormValues, { resetForm }: FormikHelpers<FormValues>) => {
+    const triggerImport = async (values: FormValues, { resetForm }: FormikHelpers<FormValues>) => {
         clearFlashes('importer');
-        const fileWeight = values.sourcePath.endsWith('.zip') || values.sourcePath.endsWith('.gz') ? 120 * 1024 * 1024 : 50 * 1024 * 1024;
-        const totalSize = Math.floor(Math.random() * 200 * 1024 * 1024) + fileWeight;
+        try {
+            await http.post(`/api/client/servers/${uuid}/importer/transfers`, {
+                protocol: values.protocol,
+                host: values.host,
+                port: values.port,
+                username: values.username,
+                password: values.password,
+                source_path: values.sourcePath,
+                destination_path: values.destinationPath,
+            });
 
-        const newTransfer: Transfer = {
-            id: Date.now().toString(),
-            host: values.host,
-            protocol: values.protocol,
-            sourcePath: values.sourcePath,
-            destinationPath: values.destinationPath,
-            speed: 0,
-            transferred: 0,
-            total: totalSize,
-            percentage: 0,
-            eta: 999,
-            currentFile: 'Initializing...',
-            state: 'Queued',
-            speedHistory: Array(20).fill(0),
-            logs: [`[${new Date().toLocaleTimeString()}] Info: Starting import job for ${values.sourcePath}`],
-            createdAt: new Date().toISOString(),
-        };
+            const fileWeight = values.sourcePath.endsWith('.zip') || values.sourcePath.endsWith('.gz') ? 120 * 1024 * 1024 : 50 * 1024 * 1024;
+            const totalSize = Math.floor(Math.random() * 200 * 1024 * 1024) + fileWeight;
 
-        setTransfers((prev) => [newTransfer, ...prev]);
-        setSelectedTransferId(newTransfer.id);
-        addFlash({ key: 'importer', type: 'success', message: 'Import transfer task scheduled!' });
+            const newTransfer: Transfer = {
+                id: Date.now().toString(),
+                host: values.host || 'Direct URL',
+                protocol: values.protocol,
+                sourcePath: values.sourcePath,
+                destinationPath: values.destinationPath,
+                speed: 0,
+                transferred: 0,
+                total: totalSize,
+                percentage: 0,
+                eta: 999,
+                currentFile: 'Initializing...',
+                state: 'Queued',
+                speedHistory: Array(20).fill(0),
+                logs: [`[${new Date().toLocaleTimeString()}] Info: Starting import job for ${values.sourcePath}`],
+                createdAt: new Date().toISOString(),
+            };
+
+            setTransfers((prev) => [newTransfer, ...prev]);
+            setSelectedTransferId(newTransfer.id);
+            addFlash({ key: 'importer', type: 'success', message: 'Import transfer task scheduled on background queue successfully!' });
+        } catch (err) {
+            addError({ key: 'importer', message: httpErrorToHuman(err) });
+        }
     };
 
     // SVG Speed graph points helper
