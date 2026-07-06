@@ -179,14 +179,36 @@ class ImporterController extends ClientApiController
                 'settings' => $profile->settings ?? [],
             ];
         } else {
-            $details = [
-                'protocol' => $request->input('protocol'),
-                'host' => $request->input('host'),
-                'port' => (int) $request->input('port'),
-                'username' => $request->input('username'),
-                'password' => $request->input('password'),
-                'settings' => $request->input('settings', []),
-            ];
+            $sourcePath = $request->input('source_path');
+            $protocol = strtolower($request->input('protocol'));
+            
+            if (in_array($protocol, ['http', 'https']) && preg_match('/^https?:\/\//i', $sourcePath)) {
+                $parsedUrl = parse_url($sourcePath);
+                $details = [
+                    'protocol' => $parsedUrl['scheme'] ?? $protocol,
+                    'host' => $parsedUrl['host'] ?? '',
+                    'port' => $parsedUrl['port'] ?? (($parsedUrl['scheme'] ?? $protocol) === 'https' ? 443 : 80),
+                    'username' => $parsedUrl['user'] ?? $request->input('username'),
+                    'password' => $parsedUrl['pass'] ?? $request->input('password'),
+                    'settings' => $request->input('settings', []),
+                ];
+                
+                $path = $parsedUrl['path'] ?? '/';
+                if (isset($parsedUrl['query'])) {
+                    $path .= '?' . $parsedUrl['query'];
+                }
+                
+                $request->merge(['source_path' => $path]);
+            } else {
+                $details = [
+                    'protocol' => $request->input('protocol'),
+                    'host' => $request->input('host'),
+                    'port' => (int) $request->input('port'),
+                    'username' => $request->input('username'),
+                    'password' => $request->input('password'),
+                    'settings' => $request->input('settings', []),
+                ];
+            }
         }
 
         if (isset($details['protocol'])) {
