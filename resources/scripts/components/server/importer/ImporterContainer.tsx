@@ -33,7 +33,7 @@ import {
     faExclamationTriangle,
 } from '@fortawesome/free-solid-svg-icons';
 import loadDirectory from '@/api/server/files/loadDirectory';
-import { httpErrorToHuman } from '@/api/http';
+import http, { httpErrorToHuman } from '@/api/http';
 import FlashMessageRender from '@/components/FlashMessageRender';
 import useFlash from '@/plugins/useFlash';
 
@@ -178,7 +178,9 @@ export default () => {
 
     const [remoteBrowserVisible, setRemoteBrowserVisible] = useState(false);
     const [remoteDirectory, setRemoteDirectory] = useState('/');
-    const [remoteFiles, setRemoteFiles] = useState<MockFile[]>([]);
+    const [remoteFiles, setRemoteFiles] = useState<any[]>([]);
+    const [remoteLoading, setRemoteLoading] = useState(false);
+    const [remoteError, setRemoteError] = useState('');
 
     // Log terminal scroll ref
     const terminalEndRef = useRef<HTMLDivElement | null>(null);
@@ -236,17 +238,7 @@ export default () => {
         localStorage.setItem(`server:${uuid}:importer_history`, JSON.stringify(newHistory));
     };
 
-    // Load remote folder
-    useEffect(() => {
-        let path = remoteDirectory;
-        if (!path.startsWith('/')) path = '/' + path;
-        const normalized = path === '/' ? '/' : path.replace(/\/$/, '');
-        const files = mockRemoteDirs[normalized] || [
-            { name: 'backup_data.zip', isFile: true, size: 245863920 },
-            { name: 'uploads', isFile: false },
-        ];
-        setRemoteFiles(files);
-    }, [remoteDirectory]);
+
 
     // Auto scroll logs
     useEffect(() => {
@@ -389,42 +381,72 @@ export default () => {
     };
 
     // Remote directory actions
-    const openRemoteBrowser = (currentSrc: string) => {
+    const loadRemoteFiles = async (dir: string, values: FormValues) => {
+        setRemoteLoading(true);
+        setRemoteError('');
+        try {
+            const { data } = await http.post(`/api/client/servers/${uuid}/importer/browse`, {
+                protocol: values.protocol,
+                host: values.host,
+                port: values.port,
+                username: values.username,
+                password: values.password,
+                directory: dir,
+            });
+            setRemoteFiles(data);
+        } catch (err) {
+            setRemoteError(httpErrorToHuman(err));
+            setRemoteFiles([]);
+        } finally {
+            setRemoteLoading(false);
+        }
+    };
+
+    const openRemoteBrowser = (currentSrc: string, values: FormValues) => {
         setRemoteBrowserVisible(true);
         setRemoteDirectory(currentSrc || '/');
+        loadRemoteFiles(currentSrc || '/', values);
     };
 
-    const handleRemoteDirClick = (dirName: string) => {
+    const handleRemoteDirClick = (dirName: string, values: FormValues) => {
         const nextDir = remoteDirectory === '/' ? `/${dirName}` : `${remoteDirectory.replace(/\/$/, '')}/${dirName}`;
         setRemoteDirectory(nextDir);
+        loadRemoteFiles(nextDir, values);
     };
 
-    const handleRemoteParentClick = () => {
+    const handleRemoteParentClick = (values: FormValues) => {
         if (remoteDirectory === '/') return;
         const parts = remoteDirectory.split('/').filter(Boolean);
         parts.pop();
         const nextDir = '/' + parts.join('/');
         setRemoteDirectory(nextDir);
+        loadRemoteFiles(nextDir, values);
     };
 
     // Connection testing
     const testConnection = async (values: FormValues) => {
         clearFlashes('importer');
         setTestingConnection(true);
-        await new Promise((resolve) => setTimeout(resolve, 2000));
-        setTestingConnection(false);
-
-        if (values.host.toLowerCase().includes('fail') || values.port === 0) {
-            addError({
-                key: 'importer',
-                message: 'Connection failed: Handshake timeout or authentication failed. Please verify credentials.',
+        try {
+            await http.post(`/api/client/servers/${uuid}/importer/test`, {
+                protocol: values.protocol,
+                host: values.host,
+                port: values.port,
+                username: values.username,
+                password: values.password,
             });
-        } else {
             addFlash({
                 key: 'importer',
                 type: 'success',
                 message: `Successfully established test connection to remote ${values.protocol} host!`,
             });
+        } catch (err) {
+            addError({
+                key: 'importer',
+                message: httpErrorToHuman(err),
+            });
+        } finally {
+            setTestingConnection(false);
         }
     };
 
@@ -700,7 +722,7 @@ export default () => {
                                                     name="sourcePath"
                                                     value={values.sourcePath}
                                                     onChange={handleFormChange}
-                                                    onClick={() => openRemoteBrowser(values.sourcePath)}
+                                                    onClick={() => openRemoteBrowser(values.sourcePath, values)}
                                                     placeholder="Click to browse or type"
                                                     hasError={!!(touched.sourcePath && errors.sourcePath)}
                                                 />
@@ -708,7 +730,7 @@ export default () => {
                                                     type="button"
                                                     color="grey"
                                                     size="small"
-                                                    onClick={() => openRemoteBrowser(values.sourcePath)}
+                                                    onClick={() => openRemoteBrowser(values.sourcePath, values)}
                                                 >
                                                     Browse
                                                 </Button>
@@ -1230,7 +1252,7 @@ export default () => {
             >
                 <div css={tw`p-6 bg-neutral-800 rounded-lg text-neutral-200`}>
                     <div css={tw`flex justify-between items-center mb-4`}>
-                        <h3 css={tw`text-lg font-bold`}>Remote Directory Browser (Simulated)</h3>
+                        <h3 css={tw`text-lg font-bold`}>Remote Directory Browser</h3>
                         <button onClick={() => setRemoteBrowserVisible(false)} css={tw`text-neutral-400 hover:text-white`}>
                             <FontAwesomeIcon icon={faTimes} />
                         </button>
@@ -1245,7 +1267,7 @@ export default () => {
                         <div css={tw`divide-y divide-neutral-800`}>
                             {remoteDirectory !== '/' && (
                                 <div
-                                    onClick={handleRemoteParentClick}
+                                    onClick={() => handleRemoteParentClick(values)}
                                     css={tw`p-3 hover:bg-neutral-800 cursor-pointer flex items-center gap-2 text-neutral-400 text-sm`}
                                 >
                                     <FontAwesomeIcon icon={faFolder} />
@@ -1260,7 +1282,7 @@ export default () => {
                                         key={file.name}
                                         onClick={() => {
                                             if (!file.isFile) {
-                                                handleRemoteDirClick(file.name);
+                                                handleRemoteDirClick(file.name, values);
                                             } else {
                                                 const path = remoteDirectory === '/' ? `/${file.name}` : `${remoteDirectory.replace(/\/$/, '')}/${file.name}`;
                                                 setFieldValue('sourcePath', path);
