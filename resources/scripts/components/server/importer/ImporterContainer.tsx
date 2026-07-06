@@ -126,14 +126,35 @@ const FormikFieldWrapper = styled.div`
 `;
 
 const ImporterValidationSchema = Yup.object().shape({
-    host: Yup.string().required('Host is required'),
-    port: Yup.number().typeError('Port must be a number').integer('Port must be an integer').required('Port is required'),
-    username: Yup.string().required('Username is required'),
-    password: Yup.string().required('Password is required'),
     protocol: Yup.string().oneOf(['SFTP', 'FTP', 'FTPS', 'HTTP', 'HTTPS']).required('Protocol is required'),
+    host: Yup.string().when('protocol', {
+        is: (val: string) => ['SFTP', 'FTP', 'FTPS'].includes(val),
+        then: Yup.string().required('Host is required'),
+        otherwise: Yup.string().optional(),
+    }),
+    port: Yup.mixed().when('protocol', {
+        is: (val: string) => ['SFTP', 'FTP', 'FTPS'].includes(val),
+        then: Yup.number().typeError('Port must be a number').integer('Port must be an integer').required('Port is required'),
+        otherwise: Yup.mixed().optional(),
+    }),
+    username: Yup.string().when('protocol', {
+        is: (val: string) => ['SFTP', 'FTP', 'FTPS'].includes(val),
+        then: Yup.string().required('Username is required'),
+        otherwise: Yup.string().optional(),
+    }),
+    password: Yup.string().when('protocol', {
+        is: (val: string) => ['SFTP', 'FTP', 'FTPS'].includes(val),
+        then: Yup.string().required('Password is required'),
+        otherwise: Yup.string().optional(),
+    }),
     sourcePath: Yup.string().required('Source path is required'),
     destinationPath: Yup.string().required('Destination path is required'),
-});
+}, [
+    ['protocol', 'host'],
+    ['protocol', 'port'],
+    ['protocol', 'username'],
+    ['protocol', 'password']
+]);
 
 const formatBytes = (bytes: number, decimals = 2) => {
     if (bytes === 0) return '0 Bytes';
