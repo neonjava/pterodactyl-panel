@@ -16,7 +16,7 @@ class StartTransferRequest extends ClientApiRequest
     {
         return [
             'profile_id' => 'nullable|integer|exists:saved_importer_profiles,id',
-            'protocol' => 'required_without:profile_id|string|in:sftp,ftp,http,https',
+            'protocol' => 'required_without:profile_id|string|in:sftp,ftp,http,https,SFTP,FTP,HTTP,HTTPS',
             'host' => 'required_without:profile_id|string|max:191',
             'port' => 'required_without:profile_id|integer|between:1,65535',
             'username' => 'required_without:profile_id|string|max:191',

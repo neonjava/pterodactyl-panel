@@ -170,7 +170,7 @@ class ImporterController extends ClientApiController
         if ($request->has('profile_id')) {
             $profile = SavedImporterProfile::where('server_id', $server->id)
                 ->findOrFail($request->input('profile_id'));
-            return [
+            $details = [
                 'protocol' => $profile->protocol,
                 'host' => $profile->host,
                 'port' => $profile->port,
@@ -178,15 +178,21 @@ class ImporterController extends ClientApiController
                 'password' => $profile->password,
                 'settings' => $profile->settings ?? [],
             ];
+        } else {
+            $details = [
+                'protocol' => $request->input('protocol'),
+                'host' => $request->input('host'),
+                'port' => (int) $request->input('port'),
+                'username' => $request->input('username'),
+                'password' => $request->input('password'),
+                'settings' => $request->input('settings', []),
+            ];
         }
 
-        return [
-            'protocol' => $request->input('protocol'),
-            'host' => $request->input('host'),
-            'port' => (int) $request->input('port'),
-            'username' => $request->input('username'),
-            'password' => $request->input('password'),
-            'settings' => $request->input('settings', []),
-        ];
+        if (isset($details['protocol'])) {
+            $details['protocol'] = strtolower($details['protocol']);
+        }
+
+        return $details;
     }
 }

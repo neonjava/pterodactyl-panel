@@ -16,7 +16,7 @@ class StoreProfileRequest extends ClientApiRequest
     {
         return [
             'name' => 'required|string|max:191',
-            'protocol' => 'required|string|in:sftp,ftp,http,https',
+            'protocol' => 'required|string|in:sftp,ftp,http,https,SFTP,FTP,HTTP,HTTPS',
             'host' => 'required|string|max:191',
             'port' => 'required|integer|between:1,65535',
             'username' => 'required|string|max:191',

@@ -167,7 +167,7 @@ class ImporterConnectionService
     protected function resolveDetails(array|SavedImporterProfile $profile): array
     {
         if ($profile instanceof SavedImporterProfile) {
-            return [
+            $details = [
                 'protocol' => $profile->protocol,
                 'host' => $profile->host,
                 'port' => $profile->port,
@@ -175,9 +175,15 @@ class ImporterConnectionService
                 'password' => $profile->password,
                 'settings' => $profile->settings,
             ];
+        } else {
+            $details = $profile;
         }
 
-        return $profile;
+        if (isset($details['protocol'])) {
+            $details['protocol'] = strtolower($details['protocol']);
+        }
+
+        return $details;
     }
 
     /**
