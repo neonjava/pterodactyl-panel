@@ -69,6 +69,9 @@ class Permission extends Model
     public const ACTION_IMPORT_CREATE = 'import.create';
     public const ACTION_IMPORT_DELETE = 'import.delete';
 
+    public const ACTION_ATTACK_VIEW = 'attack.view';
+    public const ACTION_ATTACK_MANAGE = 'attack.manage';
+
     /**
      * Should timestamps be used on this model.
      */
@@ -217,6 +220,14 @@ class Permission extends Model
                 'read' => 'Allows a user to view importer profiles and transfers.',
                 'create' => 'Allows a user to create importer profiles and start transfers.',
                 'delete' => 'Allows a user to delete importer profiles.',
+            ],
+        ],
+
+        'attack' => [
+            'description' => 'Permissions that control a user\'s access to the network attack analysis dashboard.',
+            'keys' => [
+                'view' => 'Allows a user to view network telemetry, heatmaps, geoip analytics, and active security incidents.',
+                'manage' => 'Allows a user to configure bandwidth thresholds, GeoIP, alert webhooks, and network sampling limits.',
             ],
         ],
     ];
