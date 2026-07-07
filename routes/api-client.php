@@ -164,4 +164,12 @@ Route::group([
         Route::get('/transfers', [Client\Servers\ImporterController::class, 'indexTransfers']);
         Route::get('/transfers/{transfer}/logs', [Client\Servers\ImporterController::class, 'getTransferLogs']);
     });
+
+    Route::group(['prefix' => '/network-analysis'], function () {
+        Route::get('/telemetry', [Client\Servers\NetworkAnalysisController::class, 'getTelemetry']);
+        Route::get('/events', [Client\Servers\NetworkAnalysisController::class, 'getEvents']);
+        Route::get('/settings', [Client\Servers\NetworkAnalysisController::class, 'getSettings']);
+        Route::post('/settings', [Client\Servers\NetworkAnalysisController::class, 'updateSettings']);
+        Route::post('/export', [Client\Servers\NetworkAnalysisController::class, 'exportData']);
+    });
 });
