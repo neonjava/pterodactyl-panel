@@ -47,6 +47,9 @@ class Kernel extends ConsoleKernel
         if (config('pterodactyl.telemetry.enabled')) {
             $this->registerTelemetry($schedule);
         }
+
+        // Run Network Telemetry Collector and Attack Detection every minute
+        $schedule->job(new \Pterodactyl\Jobs\ProcessNetworkTelemetryJob)->everyMinute();
     }
 
     /**
