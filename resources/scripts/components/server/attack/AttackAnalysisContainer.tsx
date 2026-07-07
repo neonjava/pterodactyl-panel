@@ -65,8 +65,8 @@ export default () => {
         callback: (opts, index) => ({
             ...opts,
             label: !index ? 'Incoming Bandwidth' : 'Outgoing Bandwidth',
-            borderColor: !index ? theme('colors.cyan.400') : theme('colors.yellow.400'),
-            backgroundColor: hexToRgba(!index ? theme('colors.cyan.700') : theme('colors.yellow.700'), 0.2),
+            borderColor: !index ? '#22d3ee' : '#fbbf24', // cyan-400 : yellow-400
+            backgroundColor: hexToRgba(!index ? '#0891b2' : '#d97706', 0.2), // cyan-700 : yellow-700
         }),
     });
 
@@ -76,8 +76,8 @@ export default () => {
         callback: (opts, index) => ({
             ...opts,
             label: !index ? 'Incoming PPS' : 'Outgoing PPS',
-            borderColor: !index ? theme('colors.emerald.400') : theme('colors.red.400'),
-            backgroundColor: hexToRgba(!index ? theme('colors.emerald.700') : theme('colors.red.700'), 0.2),
+            borderColor: !index ? '#34d399' : '#f87171', // green/emerald-400 : red-400
+            backgroundColor: hexToRgba(!index ? '#059669' : '#dc2626', 0.2), // green/emerald-700 : red-700
         }),
     });
 
