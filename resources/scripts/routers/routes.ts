@@ -22,6 +22,7 @@ import ServerActivityLogContainer from '@/components/server/ServerActivityLogCon
 const FileEditContainer = lazy(() => import('@/components/server/files/FileEditContainer'));
 const ScheduleEditContainer = lazy(() => import('@/components/server/schedules/ScheduleEditContainer'));
 const ImporterContainer = lazy(() => import('@/components/server/importer/ImporterContainer'));
+const AttackAnalysisContainer = lazy(() => import('@/components/server/attack/AttackAnalysisContainer'));
 
 interface RouteDefinition {
     path: string;
@@ -146,6 +147,12 @@ export default {
             permission: 'import.files',
             name: 'Importer',
             component: ImporterContainer,
+        },
+        {
+            path: '/attack-analysis',
+            permission: 'attack.view',
+            name: '🛡 Attack Analysis',
+            component: AttackAnalysisContainer,
         },
     ],
 } as Routes;
